@@ -1,0 +1,38 @@
+workflows:
+  ios-workflow:
+    name: Super Sorter 3D iOS Build
+    environment:
+      xcode: latest
+      ios_signing:
+        distribution_type: development
+        bundle_identifier: com.tyler.supersorter3d
+
+    scripts:
+      - name: Create export options plist
+        script: |
+          cat > /Users/builder/export_options.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>development</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Verify bundle ID in project
+        script: |
+          grep -n "PRODUCT_BUNDLE_IDENTIFIER" SuperSorter3D.xcodeproj/project.pbxproj || true
+
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --project "SuperSorter3D.xcodeproj" \
+            --scheme "SuperSorter3D" \
+            --export-options-plist "/Users/builder/export_options.plist"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
